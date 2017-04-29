@@ -439,7 +439,7 @@ This makes the functions db-execute-command and db-query thread safe."
                   (multiple-value-bind (c-type data-ptr out-len-ptr size long-p)
                                        (%allocate-bindings sql-type precision)
                     (if long-p ;; if long-p we fetch in chunks with %sql-get-data but must ensure that out_len_ptr is non zero
-                        (setf (uffi:deref-pointer out-len-ptr #.odbc::$ODBC-LONG-TYPE) #.odbc::$SQL_NO_TOTAL)
+                        (setf (uffi:deref-pointer out-len-ptr #.odbc::$ODBC-SQLLEN-TYPE) #.odbc::$SQL_NO_TOTAL)
                       (%bind-column hstmt col-nr c-type data-ptr (1+ size) out-len-ptr))
                     (vector-push-extend name column-names)
                     (vector-push-extend sql-type column-sql-types)

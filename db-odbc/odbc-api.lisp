@@ -510,7 +510,7 @@ May be locally bound to something else if a certain type is necessary.")
 (defun %column-attributes (hstmt column-nr descriptor-type)
   (with-allocate-foreign-string (descriptor-info-ptr 256)
     (with-foreign-objects ((descriptor-length-ptr :short)
-                           (numeric-descriptor-ptr #.$ODBC-LONG-TYPE))
+                           (numeric-descriptor-ptr #.$ODBC-SQLLEN-TYPE))
      (with-error-handling
          (:hstmt hstmt)
          (SQLColAttributes hstmt column-nr descriptor-type descriptor-info-ptr
@@ -518,7 +518,7 @@ May be locally bound to something else if a certain type is necessary.")
                            numeric-descriptor-ptr)
        (values
         (convert-from-foreign-string descriptor-info-ptr)
-        (deref-pointer numeric-descriptor-ptr #.$ODBC-LONG-TYPE))))))
+        (deref-pointer numeric-descriptor-ptr #.$ODBC-SQLLEN-TYPE))))))
 
 (defun %prepare-describe-columns (hstmt table-qualifier table-owner
                                    table-name column-name)
@@ -589,6 +589,7 @@ May be locally bound to something else if a certain type is necessary.")
 (def-type byte-pointer-type (* :byte))
 (def-type short-pointer-type (* :short))
 (def-type int-pointer-type (* :int))
+(def-type length-ptr-type (* #.$ODBC-SQLLEN-TYPE))
 (def-type long-pointer-type (* #.$ODBC-LONG-TYPE))
 (def-type big-pointer-type (* #.$ODBC-BIG-TYPE))
 (def-type float-pointer-type (* :float))
@@ -648,7 +649,7 @@ May be locally bound to something else if a certain type is necessary.")
 
 
 (defun read-data (data-ptr c-type sql-type out-len-ptr result-type)
-  ;;(declare (type long-ptr-type out-len-ptr))
+  (declare (type length-ptr-type out-len-ptr))
   (let* (;;(out-len (get-cast-long out-len-ptr))
 	 (out-len (uffi:deref-pointer out-len-ptr #.$ODBC-SQLLEN-TYPE))
          (value
@@ -867,7 +868,7 @@ May be locally bound to something else if a certain type is necessary.")
 
 (defun read-data-in-chunks (hstmt column-nr data-ptr c-type sql-type
                             out-len-ptr result-type)
-  (declare ;;(type long-ptr-type out-len-ptr)
+  (declare (type length-ptr-type out-len-ptr)
            (ignore result-type))
 
   (let* ((res (%sql-get-data hstmt column-nr c-type data-ptr

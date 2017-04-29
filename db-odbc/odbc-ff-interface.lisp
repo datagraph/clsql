@@ -19,7 +19,8 @@
 (def-foreign-type sql-handle :pointer-void)
 (def-foreign-type sql-handle-ptr (* sql-handle))
 (def-foreign-type string-ptr (* :unsigned-char))
-(def-type long-ptr-type (* #.$ODBC-LONG-TYPE))
+;;; also in odbc-api.lisp
+;;; (def-type long-ptr-type (* #.$ODBC-LONG-TYPE))
 
 ;; ODBC3
 (def-function "SQLAllocHandle"
