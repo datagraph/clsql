@@ -1,4 +1,4 @@
- ;;; -*- Mode: LISP; Syntax: ANSI-Common-Lisp; Package: odbc -*-
+;;;; -*- Mode: LISP; Syntax: ANSI-Common-Lisp; Package: odbc -*-
 ;;;; *************************************************************************
 ;;;; FILE IDENTIFICATION
 ;;;;
@@ -20,6 +20,8 @@
 (defconstant $ODBC-LONG-TYPE :int)
 (defconstant $ODBC-ULONG-TYPE :unsigned-int)
 (defconstant $ODBC-BIG-TYPE :long-long)
+(defconstant $ODBC-SQLLEN-TYPE #+:X86-64 :long-long #-:X86-64 $ODBC-LONG-TYPE)
+(defconstant $ODBC-SQLULEN-TYPE #+:X86-64 :unsigned-long-long #-:X86-64 $ODBC-ULONG-TYPE)
 
 ;; (defconstant $ODBCVER        #x0210)
 

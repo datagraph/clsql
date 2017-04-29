@@ -460,17 +460,17 @@ May be locally bound to something else if a certain type is necessary.")
       (deref-pointer columns-nr-ptr :short))))
 
 (defun result-rows-count (hstmt)
-  (with-foreign-objects ((row-count-ptr #.$ODBC-LONG-TYPE))
+  (with-foreign-objects ((row-count-ptr #.$ODBC-SQLLEN-TYPE))
     (with-error-handling (:hstmt hstmt)
                          (SQLRowCount hstmt row-count-ptr)
-      (deref-pointer row-count-ptr #.$ODBC-LONG-TYPE))))
+      (deref-pointer row-count-ptr #.$ODBC-SQLLEN-TYPE))))
 
 ;; column counting is 1-based
 (defun %describe-column (hstmt column-nr)
   (with-allocate-foreign-string (column-name-ptr 256)
     (with-foreign-objects ((column-name-length-ptr :short)
                            (column-sql-type-ptr :short)
-                           (column-precision-ptr #.$ODBC-ULONG-TYPE)
+                           (column-precision-ptr #.$ODBC-SQLULEN-TYPE)
                            (column-scale-ptr :short)
                            (column-nullable-p-ptr :short))
      (with-error-handling (:hstmt hstmt)
@@ -483,7 +483,7 @@ May be locally bound to something else if a certain type is necessary.")
        (values
         (convert-from-foreign-string column-name-ptr)
         (deref-pointer column-sql-type-ptr :short)
-        (deref-pointer column-precision-ptr #.$ODBC-ULONG-TYPE)
+        (deref-pointer column-precision-ptr #.$ODBC-SQLULEN-TYPE)
         (deref-pointer column-scale-ptr :short)
         (deref-pointer column-nullable-p-ptr :short))))))
 
@@ -648,8 +648,9 @@ May be locally bound to something else if a certain type is necessary.")
 
 
 (defun read-data (data-ptr c-type sql-type out-len-ptr result-type)
-  (declare (type long-ptr-type out-len-ptr))
-  (let* ((out-len (get-cast-long out-len-ptr))
+  ;;(declare (type long-ptr-type out-len-ptr))
+  (let* (;;(out-len (get-cast-long out-len-ptr))
+	 (out-len (uffi:deref-pointer out-len-ptr #.$ODBC-SQLLEN-TYPE))
          (value
           (cond ((= out-len $SQL_NULL_DATA) *null*)
                 (t
@@ -741,7 +742,7 @@ May be locally bound to something else if a certain type is necessary.")
                   (break "SQL type is ~A, precision ~D, size ~D, C type is ~A"
                          sql-type precision size c-type))
                 (uffi:allocate-foreign-object :byte (1+ size)))))
-         (out-len-ptr (uffi:allocate-foreign-object #.$ODBC-LONG-TYPE)))
+	 (out-len-ptr (uffi:allocate-foreign-object #.$ODBC-SQLLEN-TYPE)))
     (values c-type data-ptr out-len-ptr size long-p)))
 
 (defun fetch-all-rows (hstmt &key free-option flatp)
@@ -866,12 +867,13 @@ May be locally bound to something else if a certain type is necessary.")
 
 (defun read-data-in-chunks (hstmt column-nr data-ptr c-type sql-type
                             out-len-ptr result-type)
-  (declare (type long-ptr-type out-len-ptr)
+  (declare ;;(type long-ptr-type out-len-ptr)
            (ignore result-type))
 
   (let* ((res (%sql-get-data hstmt column-nr c-type data-ptr
                              +max-precision+ out-len-ptr))
-         (out-len (get-cast-long out-len-ptr))
+         ;; (out-len (get-cast-long out-len-ptr))
+	 (out-len (uffi:deref-pointer out-len-ptr #.$ODBC-SQLLEN-TYPE))
          (result (if (equal out-len #.$SQL_NULL_DATA)
                      (return-from read-data-in-chunks *null*)
                      
@@ -901,7 +903,7 @@ May be locally bound to something else if a certain type is necessary.")
                                                          +max-precision+ out-len-ptr)))))))
 
     ;; reset the out length for the next row
-    (setf (deref-pointer out-len-ptr #.$ODBC-LONG-TYPE) #.$SQL_NO_TOTAL)
+    (setf (deref-pointer out-len-ptr #.$ODBC-SQLLEN-TYPE) #.$SQL_NO_TOTAL)
     (if (= sql-type $SQL_DECIMAL)
         (let ((*read-base* 10))
           (read-from-string result))

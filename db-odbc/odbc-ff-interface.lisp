@@ -161,6 +161,7 @@
   :module "odbc"
   :returning :short)              ; RETCODE_SQL_API
 
+#-:x86-64
 (def-function "SQLRowCount"
     ((hstmt sql-handle)         ; HSTMT       hstmt
      (*pcrow (* :int))              ; SDWORD FAR *pcrow
@@ -168,6 +169,7 @@
   :module "odbc"
   :returning :short)              ; RETCODE_SQL_API
 
+#-:x86-64
 (def-function "SQLDescribeCol"
     ((hstmt sql-handle)         ; HSTMT       hstmt
      (icol :short)              ; UWORD       icol
@@ -182,6 +184,7 @@
   :module "odbc"
   :returning :short)              ; RETCODE_SQL_API
 
+#-:x86-64
 (def-function "SQLColAttributes"
     ((hstmt sql-handle)         ; HSTMT       hstmt
      (icol :short)              ; UWORD       icol
@@ -208,6 +211,7 @@
   :module "odbc"
   :returning :short)              ; RETCODE_SQL_API
 
+#-:x86-64
 (def-function "SQLBindCol"
     ((hstmt sql-handle)         ; HSTMT       hstmt
      (icol :short)              ; UWORD       icol
@@ -234,6 +238,7 @@
   :returning :short)              ; RETCODE_SQL_API
 
 ;; ODBC 2.0
+#-:x86-64
 (def-function "SQLDescribeParam"
     ((hstmt sql-handle)         ; HSTMT       hstmt
      (ipar :short)              ; UWORD       ipar
@@ -246,6 +251,7 @@
   :returning :short)              ; RETCODE_SQL_API
 
 ;; ODBC 2.0
+#-:x86-64
 (def-function "SQLBindParameter"
     ((hstmt sql-handle)         ; HSTMT       hstmt
      (ipar :short)              ; UWORD       ipar
@@ -262,6 +268,7 @@
   :returning :short)              ; RETCODE_SQL_API
 
 ;; level 1
+#-:x86-64
 (def-function "SQLGetData"
     ((hstmt sql-handle)         ; HSTMT       hstmt
      (icol :short)              ; UWORD       icol
@@ -280,6 +287,7 @@
   :module "odbc"
   :returning :short)              ; RETCODE_SQL_API
 
+#-:x86-64
 (def-function "SQLPutData"
     ((hstmt sql-handle)         ; HSTMT       hstmt
      (rgbValue :pointer-void)            ; PTR         rgbValue
@@ -296,6 +304,7 @@
   :module "odbc"
   :returning :short)              ; RETCODE_SQL_API
 
+#-:x86-64
 (def-function "SQLSetConnectOption"
     ((hdbc sql-handle)          ; HDBC        hdbc
      (fOption :short)           ; UWORD       fOption
@@ -304,6 +313,7 @@
   :module "odbc"
   :returning :short)              ; RETCODE_SQL_API
 
+#-:x86-64
 (def-function "SQLSetPos"
     ((hstmt sql-handle)         ; HSTMT       hstmt
      (irow :short)              ; UWORD       irow
@@ -313,7 +323,8 @@
   :module "odbc"
   :returning :short)              ; RETCODE_SQL_API
 
-                                        ; level 2
+                                       ; level 2
+#-:x86-64
 (def-function "SQLExtendedFetch"
     ((hstmt sql-handle)         ; HSTMT       hstmt
      (fFetchType :short)        ; UWORD       fFetchType
@@ -415,4 +426,220 @@
   :module "odbc"
   :returning :short)
 
+
+;;; 2017-04-28
+;;; revision accoring to microsoft documentation regarding 64-bit api
+;;; https://docs.microsoft.com/en-us/sql/odbc/reference/odbc-64-bit-information
+
+#+:x86-64
+(progn
+(def-function "SQLBindCol"
+    ((StatementHandle sql-handle)
+     (ColumnNumber :unsigned-short)
+     (TargetType :short)
+     (TargetValuePtr :pointer-void)
+     (BufferLength #.$ODBC-SQLLEN-TYPE)
+     (*StrLen_or_Ind (* #.$ODBC-SQLLEN-TYPE)))
+  :module "odbc"
+  :returning :short)
+
+
+(def-function "SQLBindParam"
+    ((StatementHandle sql-handle)
+     (ParameterNumber :unsigned-short)
+     (ValueType :short)
+     (ParameterType :short)
+     (ColumnSize #.$ODBC-SQLULEN-TYPE)
+     (DecimalDigits :short)
+     (ParameterValuePtr :pointer-void)
+     (*StrLen_or_Ind (* #.$ODBC-SQLLEN-TYPE)))
+  :module "odbc"
+  :returning :short)
+
+
+(def-function "SQLBindParameter"
+    ((StatementHandle sql-handle)
+     (ParameterNumber :unsigned-short)
+     (InputOutputType :short)
+     (ValueType :short)
+     (ParameterType :short)
+     (ColumnSize #.$ODBC-SQLULEN-TYPE)
+     (DecimalDigits :short)
+     (ParameterValuePtr :pointer-void)
+     (BufferLength #.$ODBC-SQLLEN-TYPE)
+     (*StrLen_or_IndPtr (* #.$ODBC-SQLLEN-TYPE)))
+  :module "odbc"
+  :returning :short)
+
+
+(def-function "SQLColAttribute"
+    ((StatementHandle sql-handle)
+     (ColumnNumber :unsigned-short)
+     (FieldIdentifier :unsigned-short)
+     (CharacterAttributePtr :pointer-void)
+     (BufferLength :short)
+     (*StringLengthPtr (* :short))
+     (*NumericAttributePtr (* #.$ODBC-SQLLEN-TYPE)))
+  :module "odbc"
+  :returning :short)
+
+
+(def-function "SQLColAttributes"
+    ((hstmt sql-handle)
+     (icol :unsigned-short)
+     (fDescType :unsigned-short)
+     (rgbDesc :pointer-void)
+     (cbDescMax :short)
+     (*pcbDesc (* :short))
+     (*pfDesc (* #.$ODBC-SQLLEN-TYPE)))
+  :module "odbc"
+  :returning :short)
+
+
+(def-function "SQLDescribeCol"
+    ((StatementHandle sql-handle)
+     (ColumnNumber :unsigned-short)
+     (*ColumnName string-ptr)
+     (BufferLength :short)
+     (*NameLengthPtr (* :short))
+     (*DataTypePtr (* :short))
+     (*ColumnSizePtr (* #.$ODBC-SQLULEN-TYPE))
+     (*DecimalDigitsPtr (* :short))
+     (*NullablePtr (* :short)))
+  :module "odbc"
+  :returning :short)
+
+
+(def-function "SQLDescribeParam"
+    ((StatementHandle sql-handle)
+     (ParameterNumber :unsigned-short)
+     (*DataTypePtr (* :short))
+     (*ParameterSizePtr (* #.$ODBC-SQLULEN-TYPE))
+     (*DecimalDigitsPtr (* :short))
+     (*NullablePtr (* :short)))
+  :module "odbc"
+  :returning :short)
+
+
+(def-function "SQLExtendedFetch"
+    ((StatementHandle sql-handle)
+     (FetchOrientation :unsigned-short)
+     (FetchOffset #.$ODBC-SQLLEN-TYPE)
+     (*RowCountPtr (* #.$ODBC-SQLULEN-TYPE))
+     (*RowStatusArray (* :unsigned-short)))
+  :module "odbc"
+  :returning :short)
+
+
+(def-function "SQLFetchScroll"
+    ((StatementHandle sql-handle)
+     (FetchOrientation :short)
+     (FetchOffset #.$ODBC-SQLLEN-TYPE))
+  :module "odbc"
+  :returning :short)
+
+
+(def-function "SQLGetData"
+    ((StatementHandle sql-handle)
+     (ColumnNumber :unsigned-short)
+     (TargetType :short)
+     (TargetValuePtr :pointer-void)
+     (BufferLength #.$ODBC-SQLLEN-TYPE)
+     (*StrLen_or_Ind (* #.$ODBC-SQLLEN-TYPE)))
+  :module "odbc"
+  :returning :short)
+
+
+(def-function "SQLGetDescRec"
+    ((DescriptorHandle sql-handle)
+     (RecNumber :short)
+     (*Name string-ptr)
+     (BufferLength :short)
+     (*StringLengthPtr (* :short))
+     (*TypePtr (* :short))
+     (*SubTypePtr (* :short))
+     (*LengthPtr (* #.$ODBC-SQLLEN-TYPE))
+     (*PrecisionPtr (* :short))
+     (*ScalePtr (* :short))
+     (*NullablePtr (* :short)))
+  :module "odbc"
+  :returning :short)
+
+
+(def-function "SQLParamOptions"
+    ((hstmt sql-handle)
+     (crow #.$ODBC-SQLULEN-TYPE)
+     (*pirow (* #.$ODBC-SQLULEN-TYPE)))
+  :module "odbc"
+  :returning :short)
+
+
+(def-function "SQLPutData"
+    ((StatementHandle sql-handle)
+     (DataPtr :pointer-void)
+     (StrLen_or_Ind #.$ODBC-SQLLEN-TYPE))
+  :module "odbc"
+  :returning :short)
+
+
+(def-function "SQLRowCount"
+    ((StatementHandle sql-handle)
+     (*RowCountPtr (* #.$ODBC-SQLLEN-TYPE)))
+  :module "odbc"
+  :returning :short)
+
+
+(def-function "SQLSetConnectOption"
+    ((ConnectHandle sql-handle)
+     (Option :unsigned-short)
+     (Value #.$ODBC-SQLULEN-TYPE))
+  :module "odbc"
+  :returning :short)
+
+
+(def-function "SQLSetPos"
+    ((StatementHandle sql-handle)
+     (RowNumber :short)
+     (Operation :unsigned-short)
+     (LockType :unsigned-short))
+  :module "odbc"
+  :returning :short)
+
+
+(def-function "SQLSetParam"
+    ((StatementHandle sql-handle)
+     (ParameterNumber :unsigned-short)
+     (ValueType :short)
+     (ParameterType :short)
+     (LengthPrecision #.$ODBC-SQLULEN-TYPE)
+     (ParameterScale :short)
+     (ParameterValue :pointer-void)
+     (*StrLen_or_Ind (* #.$ODBC-SQLLEN-TYPE)))
+  :module "odbc"
+  :returning :short)
+
+
+(def-function "SQLSetDescRec"
+    ((DescriptorHandle sql-handle)
+     (RecNumber :short)
+     (Type :short)
+     (SubType :short)
+     (Length #.$ODBC-SQLLEN-TYPE)
+     (Precision :short)
+     (Scale :short)
+     (DataPtr :pointer-void)
+     (*StringLengthPtr (* #.$ODBC-SQLLEN-TYPE))
+     (*IndicatorPtr (* #.$ODBC-SQLLEN-TYPE)))
+  :module "odbc"
+  :returning :short)
+
+
+(def-function "SQLSetScrollOptions"
+    ((hstmt sql-handle)
+     (fConcurrency :unsigned-short)
+     (crowKeyset #.$ODBC-SQLLEN-TYPE)
+     (crowRowset :unsigned-short))
+  :module "odbc"
+  :returning :short)
+) ;; x86-64
 
